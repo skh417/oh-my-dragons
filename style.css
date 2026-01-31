@@ -1014,55 +1014,80 @@ body {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   background-size: 1020px 384px;
-  background-position: -768px 0;
+  background-position: 0 0;
 }
 
 .sprite-dragon.baby {
   width: 64px;
   height: 64px;
   background-size: 680px 256px;
-  background-position: -512px 0;
+  background-position: 0 0;
 }
 
 .sprite-dragon.teen {
   width: 80px;
   height: 80px;
   background-size: 850px 320px;
-  background-position: -640px 0;
+  background-position: 0 0;
 }
 
 .sprite-dragon.adult {
   width: 96px;
   height: 96px;
   background-size: 1020px 384px;
-  background-position: -768px 0;
+  background-position: 0 0;
 }
 
 .sprite-dragon.legendary {
   width: 112px;
   height: 112px;
   background-size: 1190px 448px;
-  background-position: -896px 0;
+  background-position: 0 0;
   filter: drop-shadow(0 0 8px gold);
 }
 
 .sprite-dragon.idle {
-  animation: sprite-idle 0.6s steps(4) infinite;
+  animation: sprite-walk 0.6s steps(4) infinite;
 }
 
 .sprite-dragon.sleeping {
-  animation: sprite-sleep 1.2s steps(2) infinite;
   filter: brightness(0.7);
 }
 
-@keyframes sprite-idle {
-  from { background-position-x: -768px; }
-  to { background-position-x: -1152px; }
+.sprite-dragon.baby.idle {
+  animation: sprite-walk-baby 0.6s steps(4) infinite;
 }
 
-@keyframes sprite-sleep {
-  from { background-position-x: -896px; }
-  to { background-position-x: -1024px; }
+.sprite-dragon.teen.idle {
+  animation: sprite-walk-teen 0.6s steps(4) infinite;
+}
+
+.sprite-dragon.adult.idle {
+  animation: sprite-walk-adult 0.6s steps(4) infinite;
+}
+
+.sprite-dragon.legendary.idle {
+  animation: sprite-walk-legendary 0.6s steps(4) infinite;
+}
+
+@keyframes sprite-walk-baby {
+  from { background-position-x: 0; }
+  to { background-position-x: -256px; }
+}
+
+@keyframes sprite-walk-teen {
+  from { background-position-x: 0; }
+  to { background-position-x: -320px; }
+}
+
+@keyframes sprite-walk-adult {
+  from { background-position-x: 0; }
+  to { background-position-x: -384px; }
+}
+
+@keyframes sprite-walk-legendary {
+  from { background-position-x: 0; }
+  to { background-position-x: -448px; }
 }
 
 .sprite-tint-electric { filter: hue-rotate(30deg) saturate(1.5); }
