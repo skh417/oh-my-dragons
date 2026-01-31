@@ -79,10 +79,10 @@ const SPRITE_CONFIG = {
 const AI_SPRITE_CONFIG = {
     basePath: 'assets/sprites/ai-generated/',
     stages: {
-        baby: { file: 'dragon-baby.jpg', available: true },
-        teen: { file: 'dragon-teen.jpg', available: true },
-        adult: { file: 'dragon-adult.jpg', available: true },
-        legendary: { file: 'dragon-legendary.jpg', available: false }
+        baby: { file: 'dragon-baby.png', available: true },
+        teen: { file: 'dragon-teen.png', available: true },
+        adult: { file: 'dragon-adult.png', available: true },
+        legendary: { file: 'dragon-legendary.png', available: false }
     }
 };
 /**
