@@ -4,6 +4,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -38,7 +44,7 @@ body {
 
 /* 드래곤 디스플레이 */
 .dragon-display {
-  background: #1a1a3a;
+  background: linear-gradient(180deg, #1a1a3a 0%, #141430 100%);
   border: 3px solid #3a3a5a;
   border-radius: 8px;
   height: 220px;
@@ -48,6 +54,12 @@ body {
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dragon-display:hover {
+  border-color: #5a5a8a;
+  box-shadow: 0 0 20px rgba(100, 100, 200, 0.3);
 }
 
 .dragon-sprite-container {
@@ -55,6 +67,13 @@ body {
   justify-content: center;
   align-items: center;
   animation: bounce 1s ease-in-out infinite;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s ease;
+}
+
+.dragon-sprite-container:active {
+  transform: scale(0.95);
 }
 
 .dragon-sprite-container.sleeping {
@@ -116,6 +135,12 @@ body {
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 20px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-panel:hover {
+  border-color: #4a4a7a;
+  box-shadow: 0 0 10px rgba(100, 100, 180, 0.2);
 }
 
 .dragon-name {
@@ -167,7 +192,7 @@ body {
 
 .stat-fill {
   height: 100%;
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .stat-fill.hunger { background: linear-gradient(90deg, #ff6b6b, #ff8e8e); }
@@ -239,7 +264,8 @@ body {
 }
 
 .action-btn:active {
-  transform: translateY(0);
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .action-btn:disabled {
@@ -248,10 +274,33 @@ body {
   transform: none;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  .action-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .action-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .action-btn:active {
+    transform: scale(0.95);
+    filter: brightness(0.9);
+  }
+}
+
 .btn-feed {
   background: #ff6b6b;
   border-color: #cc5555;
   color: white;
+}
+
+.btn-feed:hover:not(:disabled) {
+  background: #ff8585;
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
 }
 
 .btn-play {
@@ -260,10 +309,20 @@ body {
   color: #333;
 }
 
+.btn-play:hover:not(:disabled) {
+  background: #ffe066;
+  box-shadow: 0 0 15px rgba(255, 217, 61, 0.5);
+}
+
 .btn-sleep {
   background: #6bcb77;
   border-color: #55aa66;
   color: white;
+}
+
+.btn-sleep:hover:not(:disabled) {
+  background: #85d590;
+  box-shadow: 0 0 15px rgba(107, 203, 119, 0.5);
 }
 
 .btn-hunt {
@@ -272,10 +331,20 @@ body {
   color: white;
 }
 
+.btn-hunt:hover:not(:disabled) {
+  background: #e36565;
+  box-shadow: 0 0 15px rgba(217, 79, 79, 0.5);
+}
+
 .btn-training {
   background: #6f7bf7;
   border-color: #4b55c8;
   color: white;
+}
+
+.btn-training:hover:not(:disabled) {
+  background: #8a94f9;
+  box-shadow: 0 0 15px rgba(111, 123, 247, 0.5);
 }
 
 .btn-education {
@@ -284,10 +353,20 @@ body {
   color: #2b1f0f;
 }
 
+.btn-education:hover:not(:disabled) {
+  background: #f7c56a;
+  box-shadow: 0 0 15px rgba(245, 182, 76, 0.5);
+}
+
 .btn-meditation {
   background: #7bc0ff;
   border-color: #4a86c7;
   color: #0f2540;
+}
+
+.btn-meditation:hover:not(:disabled) {
+  background: #99d0ff;
+  box-shadow: 0 0 15px rgba(123, 192, 255, 0.5);
 }
 
 .btn-exploration {
@@ -296,11 +375,21 @@ body {
   color: #0d2f26;
 }
 
+.btn-exploration:hover:not(:disabled) {
+  background: #5fcfb5;
+  box-shadow: 0 0 15px rgba(68, 191, 163, 0.5);
+}
+
 .btn-nest {
   background: #8e6bd9;
   border-color: #6a4bb8;
   color: white;
   width: 100%;
+}
+
+.btn-nest:hover:not(:disabled) {
+  background: #a485e3;
+  box-shadow: 0 0 15px rgba(142, 107, 217, 0.5);
 }
 
 .action-icon {
@@ -322,12 +411,44 @@ body {
   border-radius: 6px;
   color: white;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.new-egg-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.new-egg-btn:hover::before {
+  left: 100%;
 }
 
 .new-egg-btn:hover {
   transform: scale(1.02);
   box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.new-egg-btn:active {
+  transform: scale(0.98);
+  filter: brightness(0.9);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .new-egg-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 .message {
@@ -364,6 +485,13 @@ body {
   color: #cfe8ff;
   cursor: pointer;
   transition: all 0.2s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tab-btn:active {
+  transform: scale(0.95);
 }
 
 .tab-btn.active {
@@ -379,10 +507,15 @@ body {
 
 .tab-panel {
   display: none;
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .tab-panel.active {
   display: block;
+  opacity: 1;
+  transform: translateY(0);
+  animation: pop-in 0.25s ease-out;
 }
 
 /* 둥지 */
@@ -395,6 +528,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.nest-card:hover {
+  border-color: #5a4a8a;
+  box-shadow: 0 0 15px rgba(142, 107, 217, 0.2);
 }
 
 .nest-title {
@@ -426,6 +565,27 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #4a4a6a #1a1a3a;
+}
+
+.pokedex-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pokedex-list::-webkit-scrollbar-track {
+  background: #1a1a3a;
+  border-radius: 3px;
+}
+
+.pokedex-list::-webkit-scrollbar-thumb {
+  background: #4a4a6a;
+  border-radius: 3px;
+}
+
+.pokedex-list::-webkit-scrollbar-thumb:hover {
+  background: #5a5a7a;
 }
 
 .pokedex-item {
@@ -477,6 +637,28 @@ body {
   100% { opacity: 0; transform: translateY(-50px) scale(0.5); }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px currentColor; }
+  50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
 /* 이름 입력 모달 */
 .modal-overlay {
   position: fixed;
@@ -489,6 +671,12 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fade-in 0.2s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal {
@@ -499,6 +687,7 @@ body {
   text-align: center;
   max-width: 400px;
   width: 90%;
+  animation: pop-in 0.3s ease-out;
 }
 
 .modal h2 {
@@ -541,10 +730,16 @@ body {
   color: white;
   cursor: pointer;
   transition: all 0.2s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .modal button:hover {
   transform: scale(1.05);
+}
+
+.modal button:active {
+  transform: scale(0.95);
 }
 
 /* CSS 픽셀 아트 드래곤 */
@@ -811,3 +1006,466 @@ body {
 .dragon-ice { --dragon-color: #add8e6; --dragon-dark: #88b8c8; --dragon-accent: #e0ffff; }
 .dragon-poison { --dragon-color: #8a2be2; --dragon-dark: #5f1aa1; --dragon-accent: #c7a1ff; }
 .dragon-metal { --dragon-color: #9aa3ad; --dragon-dark: #6c737b; --dragon-accent: #d8dde3; }
+
+.sprite-dragon {
+  width: 96px;
+  height: 96px;
+  background-size: auto 96px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.sprite-dragon.baby {
+  width: 64px;
+  height: 64px;
+  background-size: auto 64px;
+}
+
+.sprite-dragon.teen {
+  width: 80px;
+  height: 80px;
+  background-size: auto 80px;
+}
+
+.sprite-dragon.adult {
+  width: 96px;
+  height: 96px;
+  background-size: auto 96px;
+}
+
+.sprite-dragon.legendary {
+  width: 112px;
+  height: 112px;
+  background-size: auto 112px;
+  filter: drop-shadow(0 0 8px gold);
+}
+
+.sprite-dragon.idle {
+  animation: sprite-idle 0.8s steps(4) infinite;
+}
+
+.sprite-dragon.sleeping {
+  animation: sprite-sleep 1.5s steps(2) infinite;
+  filter: brightness(0.7);
+}
+
+@keyframes sprite-idle {
+  from { background-position-x: 0; }
+  to { background-position-x: -384px; }
+}
+
+@keyframes sprite-sleep {
+  from { background-position-x: 0; }
+  to { background-position-x: -192px; }
+}
+
+.sprite-tint-electric { filter: hue-rotate(30deg) saturate(1.5); }
+.sprite-tint-ice { filter: hue-rotate(180deg) brightness(1.2); }
+.sprite-tint-grass { filter: hue-rotate(90deg); }
+.sprite-tint-dark { filter: hue-rotate(270deg) brightness(0.7); }
+.sprite-tint-light { filter: brightness(1.3) saturate(0.8); }
+.sprite-tint-psychic { filter: hue-rotate(300deg); }
+.sprite-tint-rock { filter: grayscale(0.5) brightness(0.9); }
+.sprite-tint-speed { filter: hue-rotate(150deg) saturate(1.2); }
+.sprite-tint-poison { filter: hue-rotate(270deg) saturate(1.3); }
+.sprite-tint-metal { filter: grayscale(0.7) brightness(1.1) contrast(1.1); }
+
+/* ===================================
+   반응형 디자인 - 모바일 우선
+   =================================== */
+
+/* 태블릿 (768px 이하) */
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+
+  .game-container {
+    padding: 16px;
+    border-width: 3px;
+  }
+
+  .title {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .dragon-display {
+    height: 180px;
+  }
+
+  .info-panel {
+    padding: 12px;
+  }
+
+  .dragon-name {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .info-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 9px;
+  }
+
+  .meta-item {
+    flex: 1 1 45%;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    width: 50px;
+  }
+
+  .stat-bar {
+    height: 14px;
+  }
+
+  .stat-value {
+    font-size: 9px;
+    width: 30px;
+  }
+
+  .extra-stats {
+    gap: 6px 8px;
+    font-size: 9px;
+  }
+
+  .tabs {
+    gap: 6px;
+  }
+
+  .tab-btn {
+    font-size: 8px;
+    padding: 8px 4px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .action-btn {
+    font-size: 9px;
+    padding: 12px 8px;
+    min-height: 76px;
+  }
+
+  .action-icon {
+    font-size: 20px;
+  }
+
+  .cooldown {
+    font-size: 7px;
+  }
+
+  .new-egg-btn {
+    font-size: 10px;
+    padding: 14px;
+  }
+
+  .message {
+    font-size: 9px;
+    padding: 12px;
+    min-height: 44px;
+  }
+
+  .modal {
+    padding: 20px;
+  }
+
+  .modal h2 {
+    font-size: 12px;
+  }
+
+  .modal p {
+    font-size: 9px;
+  }
+
+  .modal input {
+    font-size: 10px;
+    padding: 10px;
+  }
+
+  .modal button {
+    font-size: 10px;
+    padding: 12px 20px;
+  }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+    align-items: flex-start;
+  }
+
+  .game-container {
+    padding: 12px;
+    border-radius: 6px;
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+
+  .dragon-display {
+    height: 150px;
+    border-width: 2px;
+  }
+
+  .type-badge,
+  .stage-badge {
+    font-size: 8px;
+    padding: 4px 8px;
+  }
+
+  .gender-badge {
+    font-size: 18px;
+  }
+
+  /* 드래곤 스프라이트 크기 조절 */
+  .dragon-baby {
+    transform: scale(0.85);
+  }
+
+  .dragon-teen {
+    transform: scale(0.8);
+  }
+
+  .dragon-adult {
+    transform: scale(0.75);
+  }
+
+  .pixel-egg {
+    width: 50px;
+    height: 66px;
+  }
+
+  .pixel-egg::before {
+    width: 50px;
+    height: 66px;
+  }
+
+  .pixel-egg::after {
+    font-size: 20px;
+  }
+
+  .info-panel {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .dragon-name {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+
+  .info-meta {
+    font-size: 8px;
+    margin-bottom: 10px;
+  }
+
+  .meta-item {
+    padding: 4px 6px;
+  }
+
+  .stats {
+    gap: 8px;
+  }
+
+  .stat {
+    gap: 8px;
+  }
+
+  .stat-label {
+    font-size: 8px;
+    width: 44px;
+  }
+
+  .stat-bar {
+    height: 12px;
+  }
+
+  .stat-value {
+    font-size: 8px;
+    width: 26px;
+  }
+
+  .extra-stats {
+    margin-top: 12px;
+    gap: 4px 6px;
+    font-size: 8px;
+  }
+
+  .extra-stat {
+    padding: 4px 6px;
+  }
+
+  .info-sub {
+    font-size: 8px;
+    margin-top: 8px;
+  }
+
+  .tabs {
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .tab-btn {
+    font-size: 7px;
+    padding: 6px 3px;
+    border-width: 1px;
+  }
+
+  .tab-panels {
+    margin-bottom: 12px;
+  }
+
+  /* 케어 버튼 2x2 그리드 (모바일) */
+  .actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  /* 세 번째 버튼(재우기)는 전체 너비 */
+  .actions:not(.actions-wide) .action-btn:nth-child(3) {
+    grid-column: span 2;
+  }
+
+  .actions.actions-wide {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .action-btn {
+    font-size: 8px;
+    padding: 10px 6px;
+    min-height: 68px;
+    border-width: 2px;
+  }
+
+  .action-icon {
+    font-size: 18px;
+  }
+
+  .cooldown {
+    font-size: 6px;
+  }
+
+  .new-egg-btn {
+    font-size: 9px;
+    padding: 12px;
+    border-width: 2px;
+  }
+
+  .message {
+    font-size: 8px;
+    padding: 10px;
+    min-height: 40px;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* 둥지 카드 */
+  .nest-card {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .nest-title {
+    font-size: 10px;
+  }
+
+  .nest-bonus,
+  .nest-cost {
+    font-size: 8px;
+  }
+
+  /* 도감 */
+  .pokedex-summary {
+    font-size: 8px;
+    padding: 10px;
+  }
+
+  .pokedex-list {
+    max-height: 180px;
+    gap: 8px;
+  }
+
+  .pokedex-item {
+    font-size: 8px;
+    padding: 8px;
+  }
+
+  /* 모달 */
+  .modal {
+    padding: 16px;
+    width: 95%;
+    border-width: 3px;
+  }
+
+  .modal h2 {
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+
+  .modal p {
+    font-size: 8px;
+    margin-bottom: 14px;
+  }
+
+  .modal input {
+    font-size: 9px;
+    padding: 8px;
+    margin-bottom: 14px;
+    border-width: 2px;
+  }
+
+  .modal button {
+    font-size: 9px;
+    padding: 10px 16px;
+    border-width: 2px;
+  }
+}
+
+/* 아주 작은 화면 (360px 이하) */
+@media (max-width: 360px) {
+  .game-container {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 10px;
+  }
+
+  .dragon-display {
+    height: 130px;
+  }
+
+  .tab-btn {
+    font-size: 6px;
+    padding: 5px 2px;
+  }
+
+  .action-btn {
+    min-height: 60px;
+    padding: 8px 4px;
+  }
+
+  .action-icon {
+    font-size: 16px;
+  }
+
+  .stat-label {
+    width: 38px;
+    font-size: 7px;
+  }
+
+  .extra-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -52,6 +52,26 @@ export const STORAGE_KEYS = {
   stats: 'dragonStats'
 } as const;
 
+export const SPRITE_CONFIG = {
+  basePath: 'assets/sprites/',
+  typeMapping: {
+    fire: { file: 'dragon-fire.png', tint: '' },
+    water: { file: 'dragon-water.png', tint: '' },
+    earth: { file: 'dragon-earth.png', tint: '' },
+    wind: { file: 'dragon-air.png', tint: '' },
+    electric: { file: 'dragon-fire.png', tint: 'sprite-tint-electric' },
+    ice: { file: 'dragon-water.png', tint: 'sprite-tint-ice' },
+    grass: { file: 'dragon-earth.png', tint: 'sprite-tint-grass' },
+    dark: { file: 'dragon-earth.png', tint: 'sprite-tint-dark' },
+    light: { file: 'dragon-air.png', tint: 'sprite-tint-light' },
+    psychic: { file: 'dragon-water.png', tint: 'sprite-tint-psychic' },
+    rock: { file: 'dragon-earth.png', tint: 'sprite-tint-rock' },
+    speed: { file: 'dragon-air.png', tint: 'sprite-tint-speed' },
+    poison: { file: 'dragon-water.png', tint: 'sprite-tint-poison' },
+    metal: { file: 'dragon-earth.png', tint: 'sprite-tint-metal' }
+  } as Record<DragonTypeKey, { file: string; tint: string }>
+} as const;
+
 /**
  * 레벨업에 필요한 경험치 계산
  * 공식: 80 + (레벨 - 1) * 30

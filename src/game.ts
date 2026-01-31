@@ -4,9 +4,12 @@
  * =============================================================================
  */
 
-import type { StageInfo, CooldownAction, EvolutionTier, HuntResult } from './types';
-import { DRAGON_TYPES, GENDERS, COOLDOWNS, NESTS, getExpToNextLevel } from './constants';
+import type { StageInfo, CooldownAction, EvolutionTier, HuntResult, DragonTypeKey } from './types';
+import { DRAGON_TYPES, GENDERS, COOLDOWNS, NESTS, SPRITE_CONFIG, getExpToNextLevel } from './constants';
 import { gameState, elements, initElements, loadStorage, saveStorage, createNewDragon, getRandomType, getRandomGender, randomRange } from './state';
+
+const spriteCache: Record<string, boolean> = {};
+let spritesChecked = false;
 
 /**
  * 레벨에 따른 성장 단계 정보 반환
@@ -127,11 +130,46 @@ function recordDragon(): void {
   renderPokedex();
 }
 
+function checkSpriteAvailability(): void {
+  if (spritesChecked) return;
+  spritesChecked = true;
+  
+  const files = ['dragon-fire.png', 'dragon-water.png', 'dragon-earth.png', 'dragon-air.png'];
+  files.forEach(file => {
+    const img = new Image();
+    img.onload = () => { spriteCache[file] = true; };
+    img.onerror = () => { spriteCache[file] = false; };
+    img.src = SPRITE_CONFIG.basePath + file;
+  });
+}
+
+function hasSpriteFor(type: DragonTypeKey): boolean {
+  const mapping = SPRITE_CONFIG.typeMapping[type];
+  return mapping ? spriteCache[mapping.file] === true : false;
+}
+
+function getStageSizeClass(level: number): string {
+  if (level <= 5) return 'baby';
+  if (level <= 10) return 'teen';
+  if (level <= 14) return 'adult';
+  return 'legendary';
+}
+
 function createEggSprite(): string {
   return '<div class="pixel-egg"></div>';
 }
 
-function createDragonSprite(type: string, level: number): string {
+function createSpriteBasedDragon(type: DragonTypeKey, level: number, isSleeping: boolean): string {
+  const mapping = SPRITE_CONFIG.typeMapping[type];
+  const sizeClass = getStageSizeClass(level);
+  const animClass = isSleeping ? 'sleeping' : 'idle';
+  const tintClass = mapping.tint || '';
+  const src = SPRITE_CONFIG.basePath + mapping.file;
+  
+  return `<div class="sprite-dragon ${sizeClass} ${animClass} ${tintClass}" style="background-image: url('${src}')"></div>`;
+}
+
+function createCSSBasedDragon(type: string, level: number): string {
   const stageClass = getStageInfo(level).stageClass;
   let html = `<div class="dragon-body ${stageClass} dragon-${type}">`;
   html += '<div class="head">';
@@ -154,6 +192,14 @@ function createDragonSprite(type: string, level: number): string {
   html += '<div class="tail"></div>';
   html += '</div>';
   return html;
+}
+
+function createDragonSprite(type: string, level: number, isSleeping: boolean = false): string {
+  const typeKey = type as DragonTypeKey;
+  if (hasSpriteFor(typeKey)) {
+    return createSpriteBasedDragon(typeKey, level, isSleeping);
+  }
+  return createCSSBasedDragon(type, level);
 }
 
 function updateUI(): void {
@@ -186,7 +232,7 @@ function updateUI(): void {
     if (elements.ancestorLine) elements.ancestorLine.textContent = '조상 드래곤: ???';
   } else if (dragon.type) {
     if (elements.spriteContainer) {
-      elements.spriteContainer.innerHTML = createDragonSprite(dragon.type, dragon.level);
+      elements.spriteContainer.innerHTML = createDragonSprite(dragon.type, dragon.level, dragon.isSleeping);
       elements.spriteContainer.className = dragon.isSleeping ? 'dragon-sprite-container sleeping' : 'dragon-sprite-container';
     }
 
@@ -725,6 +771,7 @@ function setActiveTab(tabKey: string): void {
 document.addEventListener('DOMContentLoaded', () => {
   initElements();
   loadStorage();
+  checkSpriteAvailability();
 
   if (elements.spriteContainer) {
     elements.spriteContainer.addEventListener('click', handleEggClick);

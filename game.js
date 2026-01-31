@@ -53,6 +53,25 @@ const STORAGE_KEYS = {
     pokedex: 'dragonPokedex',
     stats: 'dragonStats'
 };
+const SPRITE_CONFIG = {
+    basePath: 'assets/sprites/',
+    typeMapping: {
+        fire: { file: 'dragon-fire.png', tint: '' },
+        water: { file: 'dragon-water.png', tint: '' },
+        earth: { file: 'dragon-earth.png', tint: '' },
+        wind: { file: 'dragon-air.png', tint: '' },
+        electric: { file: 'dragon-fire.png', tint: 'sprite-tint-electric' },
+        ice: { file: 'dragon-water.png', tint: 'sprite-tint-ice' },
+        grass: { file: 'dragon-earth.png', tint: 'sprite-tint-grass' },
+        dark: { file: 'dragon-earth.png', tint: 'sprite-tint-dark' },
+        light: { file: 'dragon-air.png', tint: 'sprite-tint-light' },
+        psychic: { file: 'dragon-water.png', tint: 'sprite-tint-psychic' },
+        rock: { file: 'dragon-earth.png', tint: 'sprite-tint-rock' },
+        speed: { file: 'dragon-air.png', tint: 'sprite-tint-speed' },
+        poison: { file: 'dragon-water.png', tint: 'sprite-tint-poison' },
+        metal: { file: 'dragon-earth.png', tint: 'sprite-tint-metal' }
+    }
+};
 /**
  * 레벨업에 필요한 경험치 계산
  * 공식: 80 + (레벨 - 1) * 30
@@ -239,6 +258,8 @@ function randomRange(min, max) {
  */
 
 
+const spriteCache = {};
+let spritesChecked = false;
 /**
  * 레벨에 따른 성장 단계 정보 반환
  * - 레벨 1-5: 아기
@@ -352,10 +373,43 @@ function recordDragon() {
     saveStorage();
     renderPokedex();
 }
+function checkSpriteAvailability() {
+    if (spritesChecked)
+        return;
+    spritesChecked = true;
+    const files = ['dragon-fire.png', 'dragon-water.png', 'dragon-earth.png', 'dragon-air.png'];
+    files.forEach(file => {
+        const img = new Image();
+        img.onload = () => { spriteCache[file] = true; };
+        img.onerror = () => { spriteCache[file] = false; };
+        img.src = SPRITE_CONFIG.basePath + file;
+    });
+}
+function hasSpriteFor(type) {
+    const mapping = SPRITE_CONFIG.typeMapping[type];
+    return mapping ? spriteCache[mapping.file] === true : false;
+}
+function getStageSizeClass(level) {
+    if (level <= 5)
+        return 'baby';
+    if (level <= 10)
+        return 'teen';
+    if (level <= 14)
+        return 'adult';
+    return 'legendary';
+}
 function createEggSprite() {
     return '<div class="pixel-egg"></div>';
 }
-function createDragonSprite(type, level) {
+function createSpriteBasedDragon(type, level, isSleeping) {
+    const mapping = SPRITE_CONFIG.typeMapping[type];
+    const sizeClass = getStageSizeClass(level);
+    const animClass = isSleeping ? 'sleeping' : 'idle';
+    const tintClass = mapping.tint || '';
+    const src = SPRITE_CONFIG.basePath + mapping.file;
+    return `<div class="sprite-dragon ${sizeClass} ${animClass} ${tintClass}" style="background-image: url('${src}')"></div>`;
+}
+function createCSSBasedDragon(type, level) {
     const stageClass = getStageInfo(level).stageClass;
     let html = `<div class="dragon-body ${stageClass} dragon-${type}">`;
     html += '<div class="head">';
@@ -374,6 +428,13 @@ function createDragonSprite(type, level) {
     html += '<div class="tail"></div>';
     html += '</div>';
     return html;
+}
+function createDragonSprite(type, level, isSleeping = false) {
+    const typeKey = type;
+    if (hasSpriteFor(typeKey)) {
+        return createSpriteBasedDragon(typeKey, level, isSleeping);
+    }
+    return createCSSBasedDragon(type, level);
 }
 function updateUI() {
     const { dragon, isHatched, gold } = gameState;
@@ -414,7 +475,7 @@ function updateUI() {
     }
     else if (dragon.type) {
         if (elements.spriteContainer) {
-            elements.spriteContainer.innerHTML = createDragonSprite(dragon.type, dragon.level);
+            elements.spriteContainer.innerHTML = createDragonSprite(dragon.type, dragon.level, dragon.isSleeping);
             elements.spriteContainer.className = dragon.isSleeping ? 'dragon-sprite-container sleeping' : 'dragon-sprite-container';
         }
         const typeData = DRAGON_TYPES[dragon.type];
@@ -943,6 +1004,7 @@ window.confirmName = confirmName;
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
     loadStorage();
+    checkSpriteAvailability();
     if (elements.spriteContainer) {
         elements.spriteContainer.addEventListener('click', handleEggClick);
     }
