@@ -4,7 +4,7 @@
  * =============================================================================
  */
 
-import type { StageInfo, CooldownAction, EvolutionTier, HuntResult } from './types';
+import type { StageInfo, CooldownAction, EvolutionTier, HuntResult, DragonTypeKey } from './types';
 import { DRAGON_TYPES, GENDERS, COOLDOWNS, NESTS, SPRITE_CONFIG, AI_SPRITE_CONFIG, getExpToNextLevel } from './constants';
 import { gameState, elements, initElements, loadStorage, saveStorage, createNewDragon, getRandomType, getRandomGender, randomRange } from './state';
 
@@ -328,20 +328,83 @@ function renderPokedex(): void {
   if (!elements.pokedexList) return;
 
   if (gameState.pokedex.length === 0) {
-    elements.pokedexList.innerHTML = '<div class="pokedex-item">아직 기록된 드래곤이 없습니다.</div>';
+    elements.pokedexList.innerHTML = '<div class="pokedex-empty">아직 기록된 드래곤이 없습니다.</div>';
     return;
   }
 
   elements.pokedexList.innerHTML = gameState.pokedex
-    .map((entry) => `
-      <div class="pokedex-item">
-        <strong>${entry.name}</strong> (${entry.gender}) - ${entry.type}
-        <div>레벨: ${entry.level} | 진화 등급: ${entry.tier}</div>
-        <div>조상: ${entry.ancestor}</div>
-        <div>공격 ${entry.stats.attack} / 방어 ${entry.stats.defense} / 지능 ${entry.stats.intelligence} / 정신 ${entry.stats.spirit}</div>
-      </div>
-    `)
+    .map((entry, index) => {
+      const typeInfo = DRAGON_TYPES[entry.typeKey as DragonTypeKey];
+      const emoji = typeInfo?.emoji || '🐉';
+      const tierClass = entry.tier === '상급' ? 'tier-high' : entry.tier === '중급' ? 'tier-mid' : 'tier-low';
+      return `
+        <div class="pokedex-card" data-index="${index}">
+          <div class="pokedex-card-emoji">${emoji}</div>
+          <div class="pokedex-card-name">${entry.name}</div>
+          <div class="pokedex-card-info">${entry.gender} Lv.${entry.level}</div>
+          <div class="pokedex-card-tier ${tierClass}">${entry.tier}</div>
+        </div>
+      `;
+    })
     .join('');
+
+  elements.pokedexList.querySelectorAll('.pokedex-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const index = Number((card as HTMLElement).dataset.index);
+      showPokedexDetail(index);
+    });
+  });
+}
+
+function showPokedexDetail(index: number): void {
+  const entry = gameState.pokedex[index];
+  if (!entry || !elements.pokedexModalOverlay || !elements.pokedexModalContent) return;
+
+  const typeInfo = DRAGON_TYPES[entry.typeKey as DragonTypeKey];
+  const emoji = typeInfo?.emoji || '🐉';
+  const color = typeInfo?.color || '#4a90d9';
+
+  elements.pokedexModalContent.innerHTML = `
+    <div class="pokedex-detail-header" style="border-color: ${color}">
+      <span class="pokedex-detail-emoji">${emoji}</span>
+      <div class="pokedex-detail-title">
+        <div class="pokedex-detail-name">${entry.name}</div>
+        <div class="pokedex-detail-sub">${entry.type} 타입 ${entry.gender}</div>
+      </div>
+    </div>
+    <div class="pokedex-detail-body">
+      <div class="pokedex-detail-row">
+        <span>레벨</span><span>Lv.${entry.level}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>진화 등급</span><span>${entry.tier}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>조상 드래곤</span><span>${entry.ancestor}</span>
+      </div>
+      <div class="pokedex-detail-divider"></div>
+      <div class="pokedex-detail-row">
+        <span>공격력</span><span>${entry.stats.attack}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>방어력</span><span>${entry.stats.defense}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>지능</span><span>${entry.stats.intelligence}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>정신력</span><span>${entry.stats.spirit}</span>
+      </div>
+    </div>
+  `;
+
+  elements.pokedexModalOverlay.classList.remove('hidden');
+}
+
+function closePokedexModal(): void {
+  if (elements.pokedexModalOverlay) {
+    elements.pokedexModalOverlay.classList.add('hidden');
+  }
 }
 
 function spawnParticle(emoji: string): void {
@@ -728,7 +791,68 @@ function upgradeNest(): void {
   updateUI();
 }
 
+async function shareDragon(): Promise<void> {
+  const dragon = gameState.dragon;
+  const typeInfo = dragon.type ? DRAGON_TYPES[dragon.type] : null;
+  
+  let shareText: string;
+  if (!gameState.isHatched) {
+    shareText = '🥚 드래곤 타마고치에서 알을 키우고 있어요! 어떤 드래곤이 나올까요?';
+  } else {
+    const emoji = typeInfo?.emoji || '🐉';
+    const typeName = typeInfo?.name || '???';
+    shareText = `${emoji} ${dragon.name}(Lv.${dragon.level}) - ${typeName} 타입 드래곤을 키우고 있어요!`;
+  }
+
+  const shareData = {
+    title: '드래곤 타마고치',
+    text: shareText,
+    url: 'https://skh417.github.io/oh-my-dragons/'
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        fallbackShare(shareText);
+      }
+    }
+  } else {
+    fallbackShare(shareText);
+  }
+}
+
+function fallbackShare(text: string): void {
+  const url = 'https://skh417.github.io/oh-my-dragons/';
+  const fullText = `${text}\n${url}`;
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(fullText).then(() => {
+      showMessage('📋 클립보드에 복사되었습니다!');
+    }).catch(() => {
+      showMessage('공유 링크를 복사할 수 없습니다.');
+    });
+  } else {
+    showMessage('공유 기능을 사용할 수 없습니다.');
+  }
+}
+
 function newEgg(): void {
+  const hasUnrecordedProgress = gameState.isHatched && !gameState.dragon.recorded;
+  
+  if (hasUnrecordedProgress) {
+    const dragonName = gameState.dragon.name || '현재 드래곤';
+    const level = gameState.dragon.level;
+    const confirmMessage = level >= 15
+      ? `${dragonName}(Lv.${level})을(를) 도감에 등록하고 새 알을 받으시겠습니까?`
+      : `⚠️ ${dragonName}(Lv.${level})은 아직 도감에 등록되지 않습니다.\n(Lv.15 이상 필요)\n\n정말 새 알을 받으시겠습니까? 현재 드래곤은 사라집니다.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+  }
+
   if (gameState.gameInterval) clearInterval(gameState.gameInterval);
   
   if (gameState.isHatched && gameState.dragon.level >= 15 && !gameState.dragon.recorded) {
@@ -738,6 +862,7 @@ function newEgg(): void {
 
   gameState.dragon = createNewDragon();
   gameState.isHatched = false;
+  saveStorage();
   if (elements.dragonName) elements.dragonName.textContent = '??? 의 알';
   if (elements.typeBadge) elements.typeBadge.className = 'type-badge hidden';
   if (elements.genderBadge) elements.genderBadge.classList.add('hidden');
@@ -801,6 +926,8 @@ function setActiveTab(tabKey: string): void {
 (window as any).upgradeNest = upgradeNest;
 (window as any).newEgg = newEgg;
 (window as any).confirmName = confirmName;
+(window as any).closePokedexModal = closePokedexModal;
+(window as any).shareDragon = shareDragon;
 
 // === 초기화 ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -822,6 +949,12 @@ document.addEventListener('DOMContentLoaded', () => {
   elements.tabButtons.forEach((button) => {
     button.addEventListener('click', () => setActiveTab(button.dataset.tab || ''));
   });
+
+  if (elements.pokedexModalOverlay) {
+    elements.pokedexModalOverlay.addEventListener('click', (e) => {
+      if (e.target === elements.pokedexModalOverlay) closePokedexModal();
+    });
+  }
 
   updateUI();
   renderPokedex();

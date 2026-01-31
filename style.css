@@ -451,6 +451,41 @@ body {
   }
 }
 
+.bottom-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bottom-actions .new-egg-btn {
+  flex: 1;
+}
+
+.share-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 18px 14px;
+  background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%);
+  border: 3px solid #008866;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.share-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
+}
+
+.share-btn:active {
+  transform: scale(0.98);
+  filter: brightness(0.9);
+}
+
 .message {
   text-align: center;
   font-size: 11px;
@@ -562,9 +597,9 @@ body {
 .pokedex-list {
   max-height: 220px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #4a4a6a #1a1a3a;
@@ -588,18 +623,184 @@ body {
   background: #5a5a7a;
 }
 
-.pokedex-item {
+.pokedex-empty {
+  grid-column: 1 / -1;
   background: #141433;
   border: 2px solid #2a2a4a;
   border-radius: 6px;
-  padding: 10px;
+  padding: 20px;
   font-size: 10px;
-  color: #e2f2ff;
-  line-height: 1.6;
+  color: #8899aa;
+  text-align: center;
 }
 
-.pokedex-item strong {
+.pokedex-card {
+  background: #141433;
+  border: 2px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pokedex-card:hover {
+  border-color: #4a90d9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+}
+
+.pokedex-card-emoji {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.pokedex-card-name {
+  font-size: 10px;
   color: #ffd700;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pokedex-card-info {
+  font-size: 8px;
+  color: #8899aa;
+  margin-bottom: 6px;
+}
+
+.pokedex-card-tier {
+  font-size: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.tier-high {
+  background: #ffd700;
+  color: #1a1a3a;
+}
+
+.tier-mid {
+  background: #4a90d9;
+  color: white;
+}
+
+.tier-low {
+  background: #3a3a5a;
+  color: #cfe8ff;
+}
+
+/* 도감 상세 모달 */
+.pokedex-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.pokedex-modal-overlay.hidden {
+  display: none;
+}
+
+.pokedex-modal {
+  background: #1a1a3a;
+  border: 3px solid #4a4a6a;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 320px;
+  position: relative;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pokedex-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #8899aa;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+}
+
+.pokedex-modal-close:hover {
+  color: #ff6b6b;
+}
+
+.pokedex-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid;
+}
+
+.pokedex-detail-emoji {
+  font-size: 40px;
+}
+
+.pokedex-detail-title {
+  flex: 1;
+}
+
+.pokedex-detail-name {
+  font-size: 14px;
+  color: #ffd700;
+  margin-bottom: 4px;
+}
+
+.pokedex-detail-sub {
+  font-size: 10px;
+  color: #8899aa;
+}
+
+.pokedex-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pokedex-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #cfe8ff;
+}
+
+.pokedex-detail-row span:last-child {
+  color: #fff;
+}
+
+.pokedex-detail-divider {
+  height: 1px;
+  background: #3a3a5a;
+  margin: 4px 0;
 }
 
 /* 타입별 색상 */

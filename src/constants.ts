@@ -49,7 +49,10 @@ export const STORAGE_KEYS = {
   gold: 'dragonGold',
   nest: 'dragonNestLevel',
   pokedex: 'dragonPokedex',
-  stats: 'dragonStats'
+  stats: 'dragonStats',
+  dragon: 'dragonCurrent',
+  isHatched: 'dragonHatched',
+  cooldowns: 'dragonCooldowns'
 } as const;
 
 export const SPRITE_CONFIG = {

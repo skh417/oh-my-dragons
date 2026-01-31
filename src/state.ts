@@ -90,6 +90,8 @@ export const elements: Elements = {
   ancestorLine: null,
   pokedexStats: null,
   pokedexList: null,
+  pokedexModalOverlay: null,
+  pokedexModalContent: null,
   tabButtons: [],
   tabPanels: []
 };
@@ -141,6 +143,8 @@ export function initElements(): void {
   elements.ancestorLine = document.getElementById('ancestorLine');
   elements.pokedexStats = document.getElementById('pokedexStats');
   elements.pokedexList = document.getElementById('pokedexList');
+  elements.pokedexModalOverlay = document.getElementById('pokedexModalOverlay');
+  elements.pokedexModalContent = document.getElementById('pokedexModalContent');
   elements.tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
   elements.tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
 }
@@ -150,11 +154,40 @@ export function loadStorage(): void {
   const savedNest = Number(localStorage.getItem(STORAGE_KEYS.nest));
   const savedPokedex = localStorage.getItem(STORAGE_KEYS.pokedex);
   const savedStats = localStorage.getItem(STORAGE_KEYS.stats);
+  const savedDragon = localStorage.getItem(STORAGE_KEYS.dragon);
+  const savedHatched = localStorage.getItem(STORAGE_KEYS.isHatched);
+  const savedCooldowns = localStorage.getItem(STORAGE_KEYS.cooldowns);
 
   gameState.gold = Number.isFinite(savedGold) ? savedGold : 0;
   gameState.nestLevel = Number.isFinite(savedNest) ? Math.min(Math.max(savedNest, 0), NESTS.length - 1) : 0;
   gameState.pokedex = savedPokedex ? JSON.parse(savedPokedex) : [];
   gameState.pokedexStats = savedStats ? JSON.parse(savedStats) : { totalRaised: 0, typesDiscovered: [], highestTier: '없음' };
+  
+  if (savedDragon) {
+    try {
+      gameState.dragon = JSON.parse(savedDragon);
+    } catch {
+      gameState.dragon = createNewDragon();
+    }
+  }
+  gameState.isHatched = savedHatched === 'true';
+  
+  // 쿨다운: 저장 시점 기준 경과 시간을 차감하여 복원
+  if (savedCooldowns) {
+    try {
+      const cooldownData = JSON.parse(savedCooldowns);
+      const now = Date.now();
+      const elapsed = Math.floor((now - (cooldownData.savedAt || now)) / 1000);
+      
+      gameState.cooldowns = {
+        hunt: Math.max(0, (cooldownData.hunt || 0) - elapsed),
+        education: Math.max(0, (cooldownData.education || 0) - elapsed),
+        exploration: Math.max(0, (cooldownData.exploration || 0) - elapsed),
+        training: Math.max(0, (cooldownData.training || 0) - elapsed),
+        meditation: Math.max(0, (cooldownData.meditation || 0) - elapsed)
+      };
+    } catch { }
+  }
 }
 
 export function saveStorage(): void {
@@ -162,6 +195,12 @@ export function saveStorage(): void {
   localStorage.setItem(STORAGE_KEYS.nest, String(gameState.nestLevel));
   localStorage.setItem(STORAGE_KEYS.pokedex, JSON.stringify(gameState.pokedex));
   localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(gameState.pokedexStats));
+  localStorage.setItem(STORAGE_KEYS.dragon, JSON.stringify(gameState.dragon));
+  localStorage.setItem(STORAGE_KEYS.isHatched, String(gameState.isHatched));
+  localStorage.setItem(STORAGE_KEYS.cooldowns, JSON.stringify({
+    ...gameState.cooldowns,
+    savedAt: Date.now()
+  }));
 }
 
 export function getRandomType(): DragonTypeKey {

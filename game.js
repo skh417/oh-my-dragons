@@ -51,7 +51,10 @@ const STORAGE_KEYS = {
     gold: 'dragonGold',
     nest: 'dragonNestLevel',
     pokedex: 'dragonPokedex',
-    stats: 'dragonStats'
+    stats: 'dragonStats',
+    dragon: 'dragonCurrent',
+    isHatched: 'dragonHatched',
+    cooldowns: 'dragonCooldowns'
 };
 const SPRITE_CONFIG = {
     basePath: 'assets/sprites/',
@@ -184,6 +187,8 @@ const elements = {
     ancestorLine: null,
     pokedexStats: null,
     pokedexList: null,
+    pokedexModalOverlay: null,
+    pokedexModalContent: null,
     tabButtons: [],
     tabPanels: []
 };
@@ -234,6 +239,8 @@ function initElements() {
     elements.ancestorLine = document.getElementById('ancestorLine');
     elements.pokedexStats = document.getElementById('pokedexStats');
     elements.pokedexList = document.getElementById('pokedexList');
+    elements.pokedexModalOverlay = document.getElementById('pokedexModalOverlay');
+    elements.pokedexModalContent = document.getElementById('pokedexModalContent');
     elements.tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
     elements.tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
 }
@@ -242,16 +249,50 @@ function loadStorage() {
     const savedNest = Number(localStorage.getItem(STORAGE_KEYS.nest));
     const savedPokedex = localStorage.getItem(STORAGE_KEYS.pokedex);
     const savedStats = localStorage.getItem(STORAGE_KEYS.stats);
+    const savedDragon = localStorage.getItem(STORAGE_KEYS.dragon);
+    const savedHatched = localStorage.getItem(STORAGE_KEYS.isHatched);
+    const savedCooldowns = localStorage.getItem(STORAGE_KEYS.cooldowns);
     gameState.gold = Number.isFinite(savedGold) ? savedGold : 0;
     gameState.nestLevel = Number.isFinite(savedNest) ? Math.min(Math.max(savedNest, 0), NESTS.length - 1) : 0;
     gameState.pokedex = savedPokedex ? JSON.parse(savedPokedex) : [];
     gameState.pokedexStats = savedStats ? JSON.parse(savedStats) : { totalRaised: 0, typesDiscovered: [], highestTier: '없음' };
+    if (savedDragon) {
+        try {
+            gameState.dragon = JSON.parse(savedDragon);
+        }
+        catch {
+            gameState.dragon = createNewDragon();
+        }
+    }
+    gameState.isHatched = savedHatched === 'true';
+    // 쿨다운: 저장 시점 기준 경과 시간을 차감하여 복원
+    if (savedCooldowns) {
+        try {
+            const cooldownData = JSON.parse(savedCooldowns);
+            const now = Date.now();
+            const elapsed = Math.floor((now - (cooldownData.savedAt || now)) / 1000);
+            gameState.cooldowns = {
+                hunt: Math.max(0, (cooldownData.hunt || 0) - elapsed),
+                education: Math.max(0, (cooldownData.education || 0) - elapsed),
+                exploration: Math.max(0, (cooldownData.exploration || 0) - elapsed),
+                training: Math.max(0, (cooldownData.training || 0) - elapsed),
+                meditation: Math.max(0, (cooldownData.meditation || 0) - elapsed)
+            };
+        }
+        catch { }
+    }
 }
 function saveStorage() {
     localStorage.setItem(STORAGE_KEYS.gold, String(gameState.gold));
     localStorage.setItem(STORAGE_KEYS.nest, String(gameState.nestLevel));
     localStorage.setItem(STORAGE_KEYS.pokedex, JSON.stringify(gameState.pokedex));
     localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(gameState.pokedexStats));
+    localStorage.setItem(STORAGE_KEYS.dragon, JSON.stringify(gameState.dragon));
+    localStorage.setItem(STORAGE_KEYS.isHatched, String(gameState.isHatched));
+    localStorage.setItem(STORAGE_KEYS.cooldowns, JSON.stringify({
+        ...gameState.cooldowns,
+        savedAt: Date.now()
+    }));
 }
 function getRandomType() {
     const types = ['fire', 'water', 'earth', 'dark', 'light', 'speed', 'electric', 'wind', 'psychic', 'grass', 'rock', 'ice', 'poison', 'metal'];
@@ -591,19 +632,77 @@ function renderPokedex() {
     if (!elements.pokedexList)
         return;
     if (gameState.pokedex.length === 0) {
-        elements.pokedexList.innerHTML = '<div class="pokedex-item">아직 기록된 드래곤이 없습니다.</div>';
+        elements.pokedexList.innerHTML = '<div class="pokedex-empty">아직 기록된 드래곤이 없습니다.</div>';
         return;
     }
     elements.pokedexList.innerHTML = gameState.pokedex
-        .map((entry) => `
-      <div class="pokedex-item">
-        <strong>${entry.name}</strong> (${entry.gender}) - ${entry.type}
-        <div>레벨: ${entry.level} | 진화 등급: ${entry.tier}</div>
-        <div>조상: ${entry.ancestor}</div>
-        <div>공격 ${entry.stats.attack} / 방어 ${entry.stats.defense} / 지능 ${entry.stats.intelligence} / 정신 ${entry.stats.spirit}</div>
-      </div>
-    `)
+        .map((entry, index) => {
+        const typeInfo = DRAGON_TYPES[entry.typeKey];
+        const emoji = typeInfo?.emoji || '🐉';
+        const tierClass = entry.tier === '상급' ? 'tier-high' : entry.tier === '중급' ? 'tier-mid' : 'tier-low';
+        return `
+        <div class="pokedex-card" data-index="${index}">
+          <div class="pokedex-card-emoji">${emoji}</div>
+          <div class="pokedex-card-name">${entry.name}</div>
+          <div class="pokedex-card-info">${entry.gender} Lv.${entry.level}</div>
+          <div class="pokedex-card-tier ${tierClass}">${entry.tier}</div>
+        </div>
+      `;
+    })
         .join('');
+    elements.pokedexList.querySelectorAll('.pokedex-card').forEach((card) => {
+        card.addEventListener('click', () => {
+            const index = Number(card.dataset.index);
+            showPokedexDetail(index);
+        });
+    });
+}
+function showPokedexDetail(index) {
+    const entry = gameState.pokedex[index];
+    if (!entry || !elements.pokedexModalOverlay || !elements.pokedexModalContent)
+        return;
+    const typeInfo = DRAGON_TYPES[entry.typeKey];
+    const emoji = typeInfo?.emoji || '🐉';
+    const color = typeInfo?.color || '#4a90d9';
+    elements.pokedexModalContent.innerHTML = `
+    <div class="pokedex-detail-header" style="border-color: ${color}">
+      <span class="pokedex-detail-emoji">${emoji}</span>
+      <div class="pokedex-detail-title">
+        <div class="pokedex-detail-name">${entry.name}</div>
+        <div class="pokedex-detail-sub">${entry.type} 타입 ${entry.gender}</div>
+      </div>
+    </div>
+    <div class="pokedex-detail-body">
+      <div class="pokedex-detail-row">
+        <span>레벨</span><span>Lv.${entry.level}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>진화 등급</span><span>${entry.tier}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>조상 드래곤</span><span>${entry.ancestor}</span>
+      </div>
+      <div class="pokedex-detail-divider"></div>
+      <div class="pokedex-detail-row">
+        <span>공격력</span><span>${entry.stats.attack}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>방어력</span><span>${entry.stats.defense}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>지능</span><span>${entry.stats.intelligence}</span>
+      </div>
+      <div class="pokedex-detail-row">
+        <span>정신력</span><span>${entry.stats.spirit}</span>
+      </div>
+    </div>
+  `;
+    elements.pokedexModalOverlay.classList.remove('hidden');
+}
+function closePokedexModal() {
+    if (elements.pokedexModalOverlay) {
+        elements.pokedexModalOverlay.classList.add('hidden');
+    }
 }
 function spawnParticle(emoji) {
     if (!elements.particles)
@@ -973,7 +1072,63 @@ function upgradeNest() {
     showMessage(`${nextNest.name}로 업그레이드되었습니다!`);
     updateUI();
 }
+async function shareDragon() {
+    const dragon = gameState.dragon;
+    const typeInfo = dragon.type ? DRAGON_TYPES[dragon.type] : null;
+    let shareText;
+    if (!gameState.isHatched) {
+        shareText = '🥚 드래곤 타마고치에서 알을 키우고 있어요! 어떤 드래곤이 나올까요?';
+    }
+    else {
+        const emoji = typeInfo?.emoji || '🐉';
+        const typeName = typeInfo?.name || '???';
+        shareText = `${emoji} ${dragon.name}(Lv.${dragon.level}) - ${typeName} 타입 드래곤을 키우고 있어요!`;
+    }
+    const shareData = {
+        title: '드래곤 타마고치',
+        text: shareText,
+        url: 'https://skh417.github.io/oh-my-dragons/'
+    };
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        }
+        catch (err) {
+            if (err.name !== 'AbortError') {
+                fallbackShare(shareText);
+            }
+        }
+    }
+    else {
+        fallbackShare(shareText);
+    }
+}
+function fallbackShare(text) {
+    const url = 'https://skh417.github.io/oh-my-dragons/';
+    const fullText = `${text}\n${url}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(fullText).then(() => {
+            showMessage('📋 클립보드에 복사되었습니다!');
+        }).catch(() => {
+            showMessage('공유 링크를 복사할 수 없습니다.');
+        });
+    }
+    else {
+        showMessage('공유 기능을 사용할 수 없습니다.');
+    }
+}
 function newEgg() {
+    const hasUnrecordedProgress = gameState.isHatched && !gameState.dragon.recorded;
+    if (hasUnrecordedProgress) {
+        const dragonName = gameState.dragon.name || '현재 드래곤';
+        const level = gameState.dragon.level;
+        const confirmMessage = level >= 15
+            ? `${dragonName}(Lv.${level})을(를) 도감에 등록하고 새 알을 받으시겠습니까?`
+            : `⚠️ ${dragonName}(Lv.${level})은 아직 도감에 등록되지 않습니다.\n(Lv.15 이상 필요)\n\n정말 새 알을 받으시겠습니까? 현재 드래곤은 사라집니다.`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+    }
     if (gameState.gameInterval)
         clearInterval(gameState.gameInterval);
     if (gameState.isHatched && gameState.dragon.level >= 15 && !gameState.dragon.recorded) {
@@ -982,6 +1137,7 @@ function newEgg() {
     }
     gameState.dragon = createNewDragon();
     gameState.isHatched = false;
+    saveStorage();
     if (elements.dragonName)
         elements.dragonName.textContent = '??? 의 알';
     if (elements.typeBadge)
@@ -1045,6 +1201,8 @@ window.exploration = exploration;
 window.upgradeNest = upgradeNest;
 window.newEgg = newEgg;
 window.confirmName = confirmName;
+window.closePokedexModal = closePokedexModal;
+window.shareDragon = shareDragon;
 // === 초기화 ===
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
@@ -1063,6 +1221,12 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.tabButtons.forEach((button) => {
         button.addEventListener('click', () => setActiveTab(button.dataset.tab || ''));
     });
+    if (elements.pokedexModalOverlay) {
+        elements.pokedexModalOverlay.addEventListener('click', (e) => {
+            if (e.target === elements.pokedexModalOverlay)
+                closePokedexModal();
+        });
+    }
     updateUI();
     renderPokedex();
     if (gameState.cooldownInterval)

@@ -4,6 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>드래곤 타마고치</title>
+  <meta name="description" content="나만의 드래곤을 키워보세요! 알에서 부화시켜 성체까지 육성하는 브라우저 게임">
+  
+  <meta property="og:title" content="드래곤 타마고치 - 나만의 드래곤 육성 게임">
+  <meta property="og:type" content="game">
+  <meta property="og:url" content="https://skh417.github.io/oh-my-dragons/">
+  <meta property="og:image" content="https://skh417.github.io/oh-my-dragons/assets/sprites/ai-generated/dragon-adult.png">
+  <meta property="og:description" content="알에서 드래곤을 부화시키고, 먹이를 주고, 훈련시켜 전설의 드래곤으로 키워보세요!">
+  <meta property="og:site_name" content="드래곤 타마고치">
+  <meta property="og:locale" content="ko_KR">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="드래곤 타마고치">
+  <meta name="twitter:description" content="나만의 드래곤을 키워보세요!">
+  <meta name="twitter:image" content="https://skh417.github.io/oh-my-dragons/assets/sprites/ai-generated/dragon-adult.png">
+  
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='8' y='4' width='16' height='20' rx='8' fill='%234a90d9'/><rect x='8' y='4' width='16' height='20' rx='8' fill='%234a90d9'/><rect x='6' y='0' width='4' height='8' rx='1' fill='%23ffd700'/><rect x='22' y='0' width='4' height='8' rx='1' fill='%23ffd700'/><circle cx='12' cy='12' r='4' fill='white'/><circle cx='20' cy='12' r='4' fill='white'/><circle cx='13' cy='12' r='2' fill='%23222'/><circle cx='21' cy='12' r='2' fill='%23222'/><ellipse cx='16' cy='20' rx='3' ry='2' fill='%23ff6b6b'/><rect x='4' y='22' width='8' height='6' rx='2' fill='%234a90d9'/><rect x='20' y='22' width='8' height='6' rx='2' fill='%234a90d9'/></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -142,7 +157,10 @@
       </div>
     </div>
 
-    <button class="new-egg-btn" onclick="newEgg()">🥚 새로운 알 얻기</button>
+    <div class="bottom-actions">
+      <button class="new-egg-btn" onclick="newEgg()">🥚 새로운 알 얻기</button>
+      <button class="share-btn" onclick="shareDragon()">📤 공유하기</button>
+    </div>
 
     <div class="message" id="message">알을 클릭하거나 케어해서 부화시키세요!</div>
   </div>
@@ -153,6 +171,13 @@
       <p>새로운 드래곤에게 이름을 지어주세요!</p>
       <input type="text" id="nameInput" placeholder="이름을 입력하세요" maxlength="20">
       <button onclick="confirmName()">확인</button>
+    </div>
+  </div>
+
+  <div class="pokedex-modal-overlay hidden" id="pokedexModalOverlay">
+    <div class="pokedex-modal">
+      <button class="pokedex-modal-close" onclick="closePokedexModal()">×</button>
+      <div class="pokedex-modal-content" id="pokedexModalContent"></div>
     </div>
   </div>
 

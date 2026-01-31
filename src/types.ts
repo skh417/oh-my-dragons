@@ -266,6 +266,8 @@ export interface Elements {
   ancestorLine: HTMLElement | null;
   pokedexStats: HTMLElement | null;
   pokedexList: HTMLElement | null;
+  pokedexModalOverlay: HTMLElement | null;
+  pokedexModalContent: HTMLElement | null;
   tabButtons: HTMLElement[];
   tabPanels: HTMLElement[];
 }
