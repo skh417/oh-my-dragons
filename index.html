@@ -10,7 +10,7 @@
 <body>
   <div class="game-container">
     <h1 class="title">🐉 드래곤 타마고치 🐉</h1>
-    
+
     <div class="dragon-display">
       <div class="particles" id="particles"></div>
       <div class="stage-badge" id="stageBadge">알</div>
@@ -20,9 +20,13 @@
         <div class="pixel-egg"></div>
       </div>
     </div>
-    
+
     <div class="info-panel">
       <div class="dragon-name" id="dragonName">??? 의 알</div>
+      <div class="info-meta">
+        <div class="meta-item">💰 <span id="goldValue">0</span> 골드</div>
+        <div class="meta-item">🏠 <span id="nestName">기본 둥지</span></div>
+      </div>
       <div class="stats">
         <div class="stat">
           <span class="stat-label">배고픔</span>
@@ -53,25 +57,93 @@
           <span class="stat-value" id="growthValue">0</span>
         </div>
       </div>
+      <div class="extra-stats">
+        <div class="extra-stat"><span>공격력</span><span id="attackValue">10</span></div>
+        <div class="extra-stat"><span>방어력</span><span id="defenseValue">10</span></div>
+        <div class="extra-stat"><span>지능</span><span id="intelligenceValue">10</span></div>
+        <div class="extra-stat"><span>정신력</span><span id="spiritValue">10</span></div>
+        <div class="extra-stat"><span>레벨</span><span id="levelValue">1</span></div>
+        <div class="extra-stat"><span>경험치</span><span id="expValue">0/0</span></div>
+      </div>
+      <div class="info-sub" id="tierLine">진화 등급: -</div>
+      <div class="info-sub" id="ancestorLine">조상 드래곤: ???</div>
     </div>
-    
-    <div class="actions">
-      <button class="action-btn btn-feed" id="feedBtn" onclick="feed()">
-        <span class="action-icon">🍖</span>
-        <span>먹이주기</span>
-      </button>
-      <button class="action-btn btn-play" id="playBtn" onclick="play()">
-        <span class="action-icon">⚽</span>
-        <span>놀아주기</span>
-      </button>
-      <button class="action-btn btn-sleep" id="sleepBtn" onclick="sleep()">
-        <span class="action-icon">😴</span>
-        <span>재우기</span>
-      </button>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="care">케어</button>
+      <button class="tab-btn" data-tab="activity">활동</button>
+      <button class="tab-btn" data-tab="nest">둥지</button>
+      <button class="tab-btn" data-tab="pokedex">도감</button>
     </div>
-    
+
+    <div class="tab-panels">
+      <div class="tab-panel active" id="tab-care" data-panel="care">
+        <div class="actions">
+          <button class="action-btn btn-feed" id="feedBtn" onclick="feed()">
+            <span class="action-icon">🍖</span>
+            <span>먹이주기</span>
+          </button>
+          <button class="action-btn btn-play" id="playBtn" onclick="play()">
+            <span class="action-icon">⚽</span>
+            <span>놀아주기</span>
+          </button>
+          <button class="action-btn btn-sleep" id="sleepBtn" onclick="sleep()">
+            <span class="action-icon">😴</span>
+            <span>재우기</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-activity" data-panel="activity">
+        <div class="actions actions-wide">
+          <button class="action-btn btn-hunt" id="huntBtn" onclick="hunt()">
+            <span class="action-icon">🏹</span>
+            <span>사냥</span>
+            <span class="cooldown" id="huntCooldown"></span>
+          </button>
+          <button class="action-btn btn-training" id="trainingBtn" onclick="training()">
+            <span class="action-icon">🥊</span>
+            <span>훈련</span>
+            <span class="cooldown" id="trainingCooldown"></span>
+          </button>
+          <button class="action-btn btn-education" id="educationBtn" onclick="education()">
+            <span class="action-icon">📘</span>
+            <span>교육</span>
+            <span class="cooldown" id="educationCooldown"></span>
+          </button>
+          <button class="action-btn btn-meditation" id="meditationBtn" onclick="meditation()">
+            <span class="action-icon">🧘</span>
+            <span>명상</span>
+            <span class="cooldown" id="meditationCooldown"></span>
+          </button>
+          <button class="action-btn btn-exploration" id="explorationBtn" onclick="exploration()">
+            <span class="action-icon">🧭</span>
+            <span>탐험</span>
+            <span class="cooldown" id="explorationCooldown"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-nest" data-panel="nest">
+        <div class="nest-card">
+          <div class="nest-title" id="nestTitle">기본 둥지</div>
+          <div class="nest-bonus" id="nestBonus">보너스 없음</div>
+          <div class="nest-cost" id="nestCost">업그레이드 비용: -</div>
+          <button class="action-btn btn-nest" id="upgradeNestBtn" onclick="upgradeNest()">
+            <span class="action-icon">🛠️</span>
+            <span>둥지 업그레이드</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-pokedex" data-panel="pokedex">
+        <div class="pokedex-summary" id="pokedexStats"></div>
+        <div class="pokedex-list" id="pokedexList"></div>
+      </div>
+    </div>
+
     <button class="new-egg-btn" onclick="newEgg()">🥚 새로운 알 얻기</button>
-    
+
     <div class="message" id="message">알을 클릭하거나 케어해서 부화시키세요!</div>
   </div>
 
