@@ -73,6 +73,19 @@ const SPRITE_CONFIG = {
     }
 };
 /**
+ * AI 생성 이미지 설정
+ * 성장 단계별 이미지 경로 및 사용 가능 여부
+ */
+const AI_SPRITE_CONFIG = {
+    basePath: 'assets/sprites/ai-generated/',
+    stages: {
+        baby: { file: 'dragon-baby.jpg', available: true },
+        teen: { file: 'dragon-teen.jpg', available: true },
+        adult: { file: 'dragon-adult.jpg', available: true },
+        legendary: { file: 'dragon-legendary.jpg', available: false }
+    }
+};
+/**
  * 레벨업에 필요한 경험치 계산
  * 공식: 80 + (레벨 - 1) * 30
  * 레벨 1: 80, 레벨 2: 110, 레벨 3: 140 ...
@@ -259,7 +272,9 @@ function randomRange(min, max) {
 
 
 const spriteCache = {};
+const aiSpriteCache = {};
 let spritesChecked = false;
+let aiSpritesChecked = false;
 /**
  * 레벨에 따른 성장 단계 정보 반환
  * - 레벨 1-5: 아기
@@ -385,11 +400,20 @@ function checkSpriteAvailability() {
         img.src = SPRITE_CONFIG.basePath + file;
     });
 }
-function hasSpriteFor(type) {
-    const mapping = SPRITE_CONFIG.typeMapping[type];
-    return mapping ? spriteCache[mapping.file] === true : false;
+function checkAiSpriteAvailability() {
+    if (aiSpritesChecked)
+        return;
+    aiSpritesChecked = true;
+    Object.entries(AI_SPRITE_CONFIG.stages).forEach(([stage, config]) => {
+        if (config.available) {
+            const img = new Image();
+            img.onload = () => { aiSpriteCache[stage] = true; };
+            img.onerror = () => { aiSpriteCache[stage] = false; };
+            img.src = AI_SPRITE_CONFIG.basePath + config.file;
+        }
+    });
 }
-function getStageSizeClass(level) {
+function getAiSpriteStage(level) {
     if (level <= 5)
         return 'baby';
     if (level <= 10)
@@ -398,20 +422,23 @@ function getStageSizeClass(level) {
         return 'adult';
     return 'legendary';
 }
-function createEggSprite() {
-    return '<div class="pixel-egg"></div>';
+function hasAiSpriteFor(level) {
+    const stage = getAiSpriteStage(level);
+    const config = AI_SPRITE_CONFIG.stages[stage];
+    return config.available && aiSpriteCache[stage] === true;
 }
-function createSpriteBasedDragon(type, level, isSleeping) {
-    const mapping = SPRITE_CONFIG.typeMapping[type];
+function createAiSpriteDragon(level, isSleeping) {
+    const stage = getAiSpriteStage(level);
+    const config = AI_SPRITE_CONFIG.stages[stage];
     const sizeClass = getStageSizeClass(level);
     const animClass = isSleeping ? 'sleeping' : 'idle';
-    const tintClass = mapping.tint || '';
-    const src = SPRITE_CONFIG.basePath + mapping.file;
-    return `<div class="sprite-dragon ${sizeClass} ${animClass} ${tintClass}" style="background-image: url('${src}')"></div>`;
+    const src = AI_SPRITE_CONFIG.basePath + config.file;
+    return `<div class="ai-sprite-dragon ${sizeClass} ${animClass}" style="background-image: url('${src}')"></div>`;
 }
-function createCSSBasedDragon(type, level) {
+function createCSSFallbackDragon(type, level, showComingSoon) {
     const stageClass = getStageInfo(level).stageClass;
-    let html = `<div class="dragon-body ${stageClass} dragon-${type}">`;
+    let html = `<div class="dragon-fallback-container">`;
+    html += `<div class="dragon-body ${stageClass} dragon-${type}">`;
     html += '<div class="head">';
     if (level >= 6) {
         html += '<div class="horn left"></div>';
@@ -427,14 +454,32 @@ function createCSSBasedDragon(type, level) {
     html += '<div class="body"></div>';
     html += '<div class="tail"></div>';
     html += '</div>';
+    if (showComingSoon) {
+        html += '<span class="coming-soon-badge">추후 이미지 추가예정</span>';
+    }
+    html += '</div>';
     return html;
 }
+function getStageSizeClass(level) {
+    if (level <= 5)
+        return 'baby';
+    if (level <= 10)
+        return 'teen';
+    if (level <= 14)
+        return 'adult';
+    return 'legendary';
+}
+function createEggSprite() {
+    return '<div class="pixel-egg"></div>';
+}
 function createDragonSprite(type, level, isSleeping = false) {
-    const typeKey = type;
-    if (hasSpriteFor(typeKey)) {
-        return createSpriteBasedDragon(typeKey, level, isSleeping);
+    if (hasAiSpriteFor(level)) {
+        return createAiSpriteDragon(level, isSleeping);
     }
-    return createCSSBasedDragon(type, level);
+    const stage = getAiSpriteStage(level);
+    const aiConfig = AI_SPRITE_CONFIG.stages[stage];
+    const showComingSoon = !aiConfig.available;
+    return createCSSFallbackDragon(type, level, showComingSoon);
 }
 function updateUI() {
     const { dragon, isHatched, gold } = gameState;
@@ -1005,6 +1050,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initElements();
     loadStorage();
     checkSpriteAvailability();
+    checkAiSpriteAvailability();
     if (elements.spriteContainer) {
         elements.spriteContainer.addEventListener('click', handleEggClick);
     }

@@ -1013,7 +1013,10 @@ body {
   background-repeat: no-repeat;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  background-size: 1020px 384px;
+  overflow: hidden;
+  /* 스프라이트 시트: 1360x512, 프레임 크기 추정: 48x48 원본 */
+  /* 성체 기준 96px 표시 = 2x 스케일 */
+  background-size: 2720px 1024px;
   background-position: 0 0;
 }
 
@@ -1497,5 +1500,118 @@ body {
 
   .extra-stats {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===================================
+   AI 생성 이미지 스프라이트
+   =================================== */
+
+.ai-sprite-dragon {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  image-rendering: auto;
+  transition: transform 0.3s ease;
+}
+
+.ai-sprite-dragon.baby {
+  width: 80px;
+  height: 80px;
+}
+
+.ai-sprite-dragon.teen {
+  width: 100px;
+  height: 100px;
+}
+
+.ai-sprite-dragon.adult {
+  width: 120px;
+  height: 120px;
+}
+
+.ai-sprite-dragon.legendary {
+  width: 140px;
+  height: 140px;
+  filter: drop-shadow(0 0 10px gold) drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+}
+
+.ai-sprite-dragon.idle {
+  animation: ai-sprite-bounce 1.2s ease-in-out infinite;
+}
+
+.ai-sprite-dragon.sleeping {
+  filter: brightness(0.6);
+  animation: ai-sprite-sleep 2s ease-in-out infinite;
+}
+
+.ai-sprite-dragon.legendary.sleeping {
+  filter: brightness(0.6) drop-shadow(0 0 5px gold);
+}
+
+@keyframes ai-sprite-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes ai-sprite-sleep {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+}
+
+.dragon-fallback-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.8; transform: translateX(-50%) scale(1.05); }
+}
+
+@media (max-width: 480px) {
+  .ai-sprite-dragon.baby {
+    width: 64px;
+    height: 64px;
+  }
+
+  .ai-sprite-dragon.teen {
+    width: 80px;
+    height: 80px;
+  }
+
+  .ai-sprite-dragon.adult {
+    width: 96px;
+    height: 96px;
+  }
+
+  .ai-sprite-dragon.legendary {
+    width: 112px;
+    height: 112px;
+  }
+
+  .coming-soon-badge {
+    font-size: 5px;
+    padding: 3px 6px;
+    bottom: -20px;
   }
 }

@@ -73,6 +73,20 @@ export const SPRITE_CONFIG = {
 } as const;
 
 /**
+ * AI 생성 이미지 설정
+ * 성장 단계별 이미지 경로 및 사용 가능 여부
+ */
+export const AI_SPRITE_CONFIG = {
+  basePath: 'assets/sprites/ai-generated/',
+  stages: {
+    baby: { file: 'dragon-baby.jpg', available: true },
+    teen: { file: 'dragon-teen.jpg', available: true },
+    adult: { file: 'dragon-adult.jpg', available: true },
+    legendary: { file: 'dragon-legendary.jpg', available: false }
+  }
+} as const;
+
+/**
  * 레벨업에 필요한 경험치 계산
  * 공식: 80 + (레벨 - 1) * 30
  * 레벨 1: 80, 레벨 2: 110, 레벨 3: 140 ...
